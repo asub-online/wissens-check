@@ -1,0 +1,262 @@
+<title>Wissens-Check Allgemeine Unterweisung (Kern K1–K5)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800;900&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* Layout: eine ruhige Spalte wie ein Prüfbogen; ASUB-Rot nur für Marke und Fortschritt, Grün/Rot nur für richtig/falsch */
+:root{
+  --bg:#F4F2F0; --surface:#FFFFFF; --ink:#1F1A17; --muted:#6E6863; --line:#E2DDD8;
+  --brand:#D13B26; --ok:#0A7A4F; --ok-soft:#E3F2EA; --bad:#B4291A; --bad-soft:#FBE6E2; --focus:#1F1A17;
+  --display:"Archivo",system-ui,"Segoe UI",Arial,sans-serif; --body:"Archivo",system-ui,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#171412; --surface:#221E1B; --ink:#F4EFEB; --muted:#ADA59E; --line:#3A3430;
+  --brand:#E8553F; --ok:#4CC08A; --ok-soft:#173327; --bad:#F07762; --bad-soft:#3A1E19; --focus:#F4EFEB; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171412; --surface:#221E1B; --ink:#F4EFEB; --muted:#ADA59E; --line:#3A3430;
+  --brand:#E8553F; --ok:#4CC08A; --ok-soft:#173327; --bad:#F07762; --bad-soft:#3A1E19; --focus:#F4EFEB; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.kopf{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.marke{display:flex;align-items:baseline;gap:2px;font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:-.5px}
+.marke i{display:inline-block;width:11px;height:11px;background:var(--brand);border-radius:2px;position:relative;top:0}
+.marke i:after{content:"";position:absolute;inset:3px;border:1.5px solid #fff;border-radius:50%}
+.kopf .art{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.karte{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,4vw,32px);display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(28px,5vw,40px);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.5px}
+h2{font-family:var(--display);font-weight:800;font-size:clamp(20px,3.4vw,25px);line-height:1.25;margin:0;text-wrap:balance}
+p{margin:0}
+.leise{color:var(--muted)}
+.fakten{display:flex;flex-wrap:wrap;gap:8px}
+.fakt{border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:14px}
+.fakt b{color:var(--brand)}
+label{font-weight:600;font-size:14px;display:flex;flex-direction:column;gap:6px}
+input[type=text]{font:inherit;font-weight:400;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:transparent}
+.felder{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.knopf{font:inherit;font-weight:800;font-size:16px;border:0;border-radius:10px;padding:14px 22px;background:var(--ink);color:var(--surface);cursor:pointer;align-self:flex-start}
+.knopf:hover{filter:brightness(1.15)} .knopf:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.knopf.zweit{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.knopf[disabled]{opacity:.4;cursor:not-allowed}
+.fortschritt{display:flex;flex-direction:column;gap:8px}
+.fortschritt .zeile{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.balken{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.balken div{height:100%;background:var(--brand);transition:width .3s}
+.teil{font-size:13px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.08em}
+.optionen{display:flex;flex-direction:column;gap:10px}
+.opt{font:inherit;text-align:left;display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);cursor:pointer;transition:border-color .15s}
+.opt:hover:not([disabled]){border-color:var(--ink)}
+.opt:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.opt .bu{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.opt[disabled]{cursor:default}
+.opt.richtig{border-color:var(--ok);background:var(--ok-soft)} .opt.richtig .bu{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.falsch{border-color:var(--bad);background:var(--bad-soft)} .opt.falsch .bu{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt.blass{opacity:.55}
+.rueck{border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-left:5px solid}
+.rueck.ok{background:var(--ok-soft);border-color:var(--ok)} .rueck.nein{background:var(--bad-soft);border-color:var(--bad)}
+.rueck strong{font-family:var(--display);font-size:18px}
+.rueck .quelle{font-size:13px;color:var(--muted)}
+.betrieb{display:flex;flex-direction:column;gap:14px}
+.ergebnis{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ring{flex:none;width:112px;height:112px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:var(--display);font-weight:900;font-size:32px;line-height:1;font-variant-numeric:tabular-nums}
+.ring small{font-size:13px;font-weight:600;margin-top:4px}
+.ring.ok{background:var(--ok-soft);color:var(--ok);border:3px solid var(--ok)} .ring.nein{background:var(--bad-soft);color:var(--bad);border:3px solid var(--bad)}
+.liste{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.liste li{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.liste li > div{min-width:0}
+.liste .z{font-weight:800} .liste .z.ok{color:var(--ok)} .liste .z.nein{color:var(--bad)}
+.liste .r{color:var(--muted)}
+.urkunde{border:1.5px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.urkunde:before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--brand)}
+.urkunde .gross{font-family:var(--display);font-weight:900;font-size:24px}
+.hinweis{font-size:14px;color:var(--muted)}
+.knoepfe{display:flex;gap:12px;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="kopf">
+    <div class="marke" aria-label="ASUB">ASUB<i></i></div>
+    <div class="art">Wissens-Check · Allgemeine Unterweisung (Kern K1–K5)</div>
+  </header>
+  <main id="buehne" class="karte" aria-live="polite"></main>
+</div>
+
+<script>
+const DATEN = {"titel": "Allgemeine Unterweisung (Kern K1–K5)", "kurz": "Allgemeine Unterweisung (Kern K1–K5)", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "Kern", "titel": "Allgemeine Unterweisung K1–K5", "bestehen": 12, "teile": [{"titel": "Grundlagen und Pflichten", "fragen": [{"f": "An der Maschine fehlt die Schutzhaube. Deine Führungskraft sagt: „Der Auftrag muss heute raus, mach einfach vorsichtig weiter.“ Was tust du?", "a": ["Weiterarbeiten, die Führungskraft hat es ja angeordnet", "Maschine nicht benutzen und den Mangel melden", "Weiterarbeiten, aber besonders aufpassen", "Eine Haube von einer anderen Maschine anbauen"], "r": "B", "w": "Schutzeinrichtungen werden nie umgangen. Anweisungen, die erkennbar gegen die Sicherheit gehen, darfst du nicht befolgen.", "q": "ArbSchG § 15, § 16 · DGUV Vorschrift 1 § 15 Abs. 1"}, {"f": "In der Halle tritt plötzlich stark riechendes Gas aus. Darfst du sofort rausgehen, ohne vorher jemanden zu fragen?", "a": ["Ja, bei unmittelbarer Gefahr darfst du sofort gehen", "Nein, erst muss die Führungskraft zustimmen", "Nur wenn alle Kollegen gleichzeitig mitkommen", "Ja, aber die Zeit wird dir vom Lohn abgezogen"], "r": "A", "w": "Daraus darf dir kein Nachteil entstehen, warne aber die anderen. Andere warnen! Bei unmittelbarer, erheblicher Gefahr darfst du dich sofort in Sicherheit bringen. Daraus darf dir kein Nachteil entstehen.", "q": "ArbSchG § 9 Abs. 3"}, {"f": "Du stößt beim Rangieren mit dem Hubwagen versehentlich einen Kollegen an. Er verletzt sich am Fuß. Wer zahlt seine Behandlung?", "a": ["Du selbst bzw. deine private Haftpflicht", "Die Krankenkasse des Kollegen", "Die Berufsgenossenschaft", "Der Arbeitgeber aus eigener Tasche"], "r": "C", "w": "Bei Arbeitsunfällen zahlt die Berufsgenossenschaft, auch wenn ein Kollege den Unfall verursacht hat. Nur bei grober Fahrlässigkeit oder Vorsatz kann sie sich das Geld von dir zurückholen.", "q": "SGB VII § 105, § 110"}]}, {"titel": "Fit und sicher", "fragen": [{"f": "Gestern Geburtstag bis 1 Uhr nachts, heute um 6 Uhr Frühschicht mit dem Stapler. Du fühlst dich „eigentlich okay“. Was ist richtig?", "a": ["Wer sich fit fühlt, darf auch fahren", "Kaffee und kalte Dusche bauen den Alkohol ab", "Was am Vorabend war, ist meine Privatsache", "Restalkohol zählt, im Zweifel fahre ich nicht"], "r": "D", "w": "Bist du nicht sicher nüchtern, sagst du Bescheid und fährst nicht. Der Körper baut nur etwa 0,1 bis 0,15 Promille pro Stunde ab, Kaffee oder Duschen ändern daran nichts. Wer berauscht ist, darf sich und andere nicht gefährden.", "q": "DGUV Vorschrift 1 § 15 Abs. 2, § 7 Abs. 2"}, {"f": "Du nimmst seit kurzem ein Medikament, das müde machen kann, und arbeitest an Maschinen. Was sagst du deiner Führungskraft?", "a": ["Nichts, Gesundheit ist meine Privatsache", "Dass du eingeschränkt sein kannst, nicht die Diagnose", "Die genaue Diagnose und den Namen des Mittels", "Nur dann etwas, wenn sie selbst danach fragt"], "r": "B", "w": "Die Diagnose musst du nicht nennen. Die Führungskraft muss nur wissen, was für die Sicherheit wichtig ist. Alles Weitere kannst du mit dem Betriebsarzt besprechen, er hat Schweigepflicht.", "q": "DGUV Vorschrift 1 § 15 Abs. 3 · ASiG § 8"}, {"f": "Seit Wochen Überstunden, unklare Zuständigkeiten, und ein Kollege macht dich regelmäßig vor anderen runter. Was ist der richtige Weg?", "a": ["Durchhalten, das gehört nun mal zum Job dazu", "Früh ansprechen, z. B. bei Führungskraft oder Betriebsarzt", "Erst etwas sagen, wenn du krankgeschrieben bist", "Das ist eine private Sache zwischen euch beiden"], "r": "B", "w": "Ansprechpartner sind Führungskraft, Betriebsarzt, Betriebsrat oder Fachkraft für Arbeitssicherheit. Psychische Belastungen gehören zur Gefährdungsbeurteilung des Betriebs. Je früher sie angesprochen werden, desto leichter lässt sich etwas ändern.", "q": "ArbSchG § 5 Abs. 3 Nr. 6 (Szene Miteinander)"}]}, {"titel": "Unfall und Versicherung", "fragen": [{"f": "Auf dem Heimweg hältst du kurz am Supermarkt. Auf dem Parkplatz rutschst du aus. Bist du versichert?", "a": ["Nein, während des privaten Einkaufs nicht", "Ja, der ganze Heimweg ist versichert", "Ja, wenn der Supermarkt direkt am Weg liegt", "Nein, und auf dem restlichen Heimweg auch nicht mehr"], "r": "A", "w": "Auf dem restlichen Heimweg danach wieder ja. Private Unterbrechungen sind nicht versichert. Danach greift der Schutz wieder, wenn die Unterbrechung nicht länger als zwei Stunden gedauert hat.", "q": "SGB VII § 8 Abs. 2 · Rechtsprechung BSG"}, {"f": "Du hast dich leicht am Finger geschnitten, ein Pflaster reicht. Muss sonst noch etwas passieren?", "a": ["Nein, eine Kleinigkeit", "Ja, sofort zum Hausarzt", "Ja, ins Verbandbuch eintragen", "Nur melden, wenn es stark blutet"], "r": "C", "w": "Das Verbandbuch ist dein Nachweis, falls aus dem kleinen Schnitt später eine Entzündung wird.", "q": "DGUV Vorschrift 1 § 24 Abs. 6"}, {"f": "Seit Tagen liegt ein Verlängerungskabel quer über dem Gang zur Werkbank. Was tust du?", "a": ["Kabel sicher verlegen oder abdecken, sonst melden", "Drübersteigen, jeder weiß ja Bescheid", "Ein Warnschild davorstellen", "Nichts, dafür ist die Reinigung zuständig"], "r": "A", "w": "Stolpern, Rutschen und Stürzen gehört zu den häufigsten Unfällen. Ein Schild ersetzt nicht, die Stolperstelle zu beseitigen.", "q": "ASR A1.8"}]}, {"titel": "Notfall", "fragen": [{"f": "Im Lager qualmt ein Karton, kleine Flammen. Ein Feuerlöscher hängt fünf Meter weiter. Was tust du zuerst?", "a": ["Still und leise selbst löschen, um keine Panik zu machen", "Erst die Führungskraft suchen und fragen, was zu tun ist", "Laut „Feuer!“ rufen, dann sofort mit dem Löscher löschen", "Fenster öffnen, damit der Rauch schnell abziehen kann"], "r": "C", "w": "Geht es nicht schnell aus: raus, Tür zu, Notruf sicherstellen. Geht es nicht schnell aus: raus, Tür zu, Notruf sicherstellen. Ein Entstehungsbrand ist genau das, wofür der Feuerlöscher da ist. Aber erst kurz Alarm geben, damit die anderen gewarnt sind, und dein eigenes Leben geht vor. Frische Luft facht das Feuer an.", "q": "Brandschutzordnung Teil A (DIN 14096) · ASR A2.2"}, {"f": "Räumungsalarm. Draußen merkst du: Dein Handy liegt noch am Arbeitsplatz. Was tust du?", "a": ["Schnell zurückholen, das dauert ja nur eine Minute", "Am Sammelplatz bleiben, bis die Feuerwehr freigibt", "Nach Hause gehen, die Arbeit ist ja unterbrochen", "Zurückgehen, aber mit dem Aufzug, das geht schneller"], "r": "B", "w": "Wer am Sammelplatz fehlt, wird von der Feuerwehr gesucht und bringt Retter in Gefahr.", "q": "ASR A2.3"}, {"f": "Ein Kollege liegt reglos neben einer Maschine, die noch läuft. Was tust du zuerst?", "a": ["Sofort hinlaufen und ihn von der Maschine wegziehen", "Den Ersthelfer holen und bis dahin nichts anfassen", "Ihn aufsetzen und ihm etwas zu trinken geben", "Erst die Maschine stoppen, dann helfen und 112"], "r": "D", "w": "Also Maschine stoppen (Not-Halt), dann ansprechen und Notruf 112. Erst sichern, dann helfen. Wer sich selbst verletzt, kann niemandem mehr helfen.", "q": "DGUV Vorschrift 1 § 24 ff. · DGUV Information 204-022"}]}, {"titel": "Alltagsgefahren", "fragen": [{"f": "Im Winter ist es kalt am Arbeitsplatz. Darfst du deinen Heizlüfter von zu Hause mitbringen?", "a": ["Ja, das ist mein eigenes Gerät und meine Sache", "Nur mit Erlaubnis, private Geräte sind nicht geprüft", "Ja, wenn er neu ist und ein CE-Zeichen hat", "Ja, wenn ich ihn nach Feierabend immer ausstecke"], "r": "B", "w": "Elektrische Geräte im Betrieb müssen geprüft sein. Ein Heizlüfter zieht viel Strom und ist eine häufige Brandursache.", "q": "BetrSichV · DGUV Vorschrift 3"}, {"f": "Du willst nur kurz etwas vom oberen Regalfach holen. Die Leiter steht im Nebenraum, der Bürostuhl direkt neben dir. Was nimmst du?", "a": ["Den Bürostuhl, sind ja nur zehn Sekunden", "Leiter oder Tritt aus dem Nebenraum holen", "Den Tisch, der steht wenigstens fest und wackelt nicht", "Den Bürostuhl, wenn ein Kollege ihn festhält"], "r": "B", "w": "Stühle, Tische, Kisten und Regale sind nie ein Aufstieg. Stürze aus geringer Höhe enden oft schwer.", "q": "TRBS 2121 Teil 2 · DGUV Information 208-016"}, {"f": "Deine Sicherheitsschuhe sind durchgelaufen. Was gilt?", "a": ["Neue kaufen, die Kosten trägst du selbst", "Weitertragen bis zur nächsten Ausgabe im Januar", "Melden, der Arbeitgeber stellt kostenlos Ersatz", "Bis dahin normale Turnschuhe anziehen, die sind bequemer"], "r": "C", "w": "Persönliche Schutzausrüstung bezahlt der Arbeitgeber. Kaputte PSA schützt nicht mehr.", "q": "ArbSchG § 3 Abs. 3 · PSA-Benutzungsverordnung § 2"}]}], "betrieb": ["Wie heißt eine Ersthelferin oder ein Ersthelfer in deinem Bereich?", "Wo ist euer Sammelplatz?", "Wo hängt der Feuerlöscher, der deinem Arbeitsplatz am nächsten ist?"]}]};
+const $ = s => document.querySelector(s);
+const buehne = $("#buehne");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fragen = [];
+DATEN.bausteine.forEach((b, bi) => b.teile.forEach(t => t.fragen.forEach(f => fragen.push({...f, bi, teil: t.titel ? `${b.kurz} · ${t.titel}` : `${b.kurz} · ${b.titel}`}))));
+const GESAMT = fragen.length;
+const BETRIEB = DATEN.bausteine.flatMap((b,i) => i === 0 ? b.betrieb : b.betrieb.slice(0,1));
+function wertung(){ return DATEN.bausteine.map((b,bi) => { const idx = fragen.map((f,i)=>f.bi===bi?i:-1).filter(i=>i>=0); const r = idx.filter(i => st.antworten[i] && st.antworten[i].ok).length; return {kurz:b.kurz, titel:b.titel, richtig:r, von:idx.length, grenze:b.bestehen, ok:r>=b.bestehen}; }); }
+let st = {name:"", betrieb:"", pos:0, antworten:[], betriebAntw:[], datum:null};
+
+function mischen(a){ const b=a.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];} return b; }
+fragen.forEach(f => { const r = "ABCD".indexOf(f.r); f.reihe = mischen([0,1,2,3]); f.richtigIdx = f.reihe.indexOf(r); });
+
+function start(){
+  buehne.innerHTML = `
+    <h1>${esc(DATEN.titel)}</h1>
+    <p class="leise">Beantworte die Fragen nach dem Video. Nach jeder Frage siehst du sofort, ob es richtig war und warum. Am Ende bekommst du deine Auswertung und bei Erfolg ein Zertifikat als PDF.</p>
+    <div class="fakten"><span class="fakt"><b>${GESAMT}</b> Fragen</span><span class="fakt">ca. <b>${Math.max(4, Math.round(GESAMT*0.5))} Minuten</b></span></div>
+    <div class="betrieb" style="gap:8px"><span class="teil" style="color:var(--muted)">Enthalten</span><ul class="liste">${DATEN.bausteine.map(b => `<li><span class="z">${esc(b.kurz)}</span><div>${esc(b.titel)} <span class="r">· bestanden ab ${b.bestehen} von ${b.teile.reduce((n,t)=>n+t.fragen.length,0)}</span></div></li>`).join("")}</ul></div>
+    <form id="anmeldung" class="betrieb" novalidate>
+      <div class="felder">
+        <label for="name">Vor- und Nachname<input type="text" id="name" autocomplete="name" required></label>
+        <label for="firma">Betrieb oder Bereich<input type="text" id="firma" autocomplete="organization"></label>
+      </div>
+      <p id="fehler" class="hinweis" hidden>Bitte gib deinen Namen ein. Er steht später auf dem Zertifikat.</p>
+      <button class="knopf" type="submit">Test starten</button>
+    </form>`;
+  $("#anmeldung").addEventListener("submit", e => {
+    e.preventDefault();
+    const n = $("#name").value.trim();
+    if(n.length < 3){ $("#fehler").hidden = false; $("#name").focus(); return; }
+    st.name = n; st.betrieb = $("#firma").value.trim(); st.pos = 0; st.antworten = [];
+    frage();
+  });
+}
+
+function kopfzeile(){
+  const p = Math.round(st.pos / GESAMT * 100);
+  return `<div class="fortschritt"><div class="zeile"><span>Frage ${st.pos+1} von ${GESAMT}</span><span>${st.antworten.filter(a=>a.ok).length} richtig</span></div><div class="balken"><div style="width:${p}%"></div></div></div>`;
+}
+
+function frage(){
+  const f = fragen[st.pos];
+  buehne.innerHTML = `${kopfzeile()}
+    <div class="teil">${esc(f.teil)}</div>
+    <h2>${esc(f.f)}</h2>
+    <div class="optionen" role="group" aria-label="Antworten">
+      ${f.reihe.map((o,k) => `<button class="opt" type="button" data-k="${k}"><span class="bu">${"ABCD"[k]}</span><span>${esc(f.a[o])}</span></button>`).join("")}
+    </div>
+    <div id="rueck"></div>`;
+  buehne.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => waehlen(+b.dataset.k)));
+  buehne.querySelector(".opt").focus({preventScroll:true});
+}
+
+function waehlen(k){
+  const f = fragen[st.pos], ok = k === f.richtigIdx;
+  st.antworten.push({k, ok});
+  buehne.querySelectorAll(".opt").forEach((b,i) => {
+    b.disabled = true;
+    if(i === f.richtigIdx) b.classList.add("richtig");
+    else if(i === k) b.classList.add("falsch");
+    else b.classList.add("blass");
+  });
+  const L = "ABCD"[f.richtigIdx];
+  const letzte = st.pos === GESAMT - 1;
+  $("#rueck").innerHTML = `
+    <div class="rueck ${ok ? "ok" : "nein"}">
+      <strong>${ok ? "Richtig!" : `Leider falsch. Richtig wäre ${L} gewesen.`}</strong>
+      ${ok ? "" : `<p>${esc(f.a[f.reihe[f.richtigIdx]])}</p>`}
+      ${f.w ? `<p>${esc(f.w)}</p>` : ""}
+      <p class="quelle">Quelle: ${esc(f.q)}</p>
+    </div>
+    <div class="knoepfe" style="margin-top:16px"><button class="knopf" id="weiter" type="button">${letzte ? "Zu den Fragen zu deinem Betrieb" : "Nächste Frage"}</button></div>`;
+  $("#weiter").addEventListener("click", () => { st.pos++; letzte ? betrieb() : frage(); });
+  $("#weiter").focus({preventScroll:false});
+}
+
+function betrieb(){
+  buehne.innerHTML = `
+    <div class="teil">Zum Schluss · ohne Punkte</div>
+    <h2>Und bei euch im Betrieb?</h2>
+    <p class="leise">Diese Fragen zählen nicht für die Punkte. Wenn du etwas nicht weißt, lass es frei und frag nach.</p>
+    <form id="bf" class="betrieb">
+      ${BETRIEB.map((b,i) => `<label for="b${i}">${esc(b)}<input type="text" id="b${i}"></label>`).join("")}
+      <button class="knopf" type="submit">Auswertung anzeigen</button>
+    </form>`;
+  $("#bf").addEventListener("submit", e => {
+    e.preventDefault();
+    st.betriebAntw = BETRIEB.map((b,i) => ({frage:b, antwort: $("#b"+i).value.trim()}));
+    auswertung();
+  });
+}
+
+function auswertung(){
+  const richtig = st.antworten.filter(a=>a.ok).length, W = wertung(), ok = W.every(w=>w.ok);
+  st.datum = new Date();
+  const d = st.datum.toLocaleDateString("de-DE");
+  buehne.innerHTML = `
+    <div class="ergebnis">
+      <div class="ring ${ok ? "ok" : "nein"}">${richtig}/${GESAMT}<small>richtig</small></div>
+      <div style="min-width:0;flex:1 1 240px;display:flex;flex-direction:column;gap:6px">
+        <h1 style="font-size:clamp(26px,4.6vw,34px)">${ok ? "Bestanden" : "Noch nicht bestanden"}</h1>
+        <p class="leise">${ok ? `Gut gemacht, ${esc(st.name.split(" ")[0])}. Du hast alle Teile bestanden.` : `Mindestens ein Teil ist noch nicht bestanden. Schau dir die Erklärungen unten an und versuche es noch einmal.`}</p>
+      </div>
+    </div>
+    <ul class="liste">${W.map(w => `<li><span class="z ${w.ok?"ok":"nein"}">${w.ok?"✓":"✗"}</span><div>${esc(w.kurz)} ${esc(w.titel)} <span class="r">· ${w.richtig} von ${w.von} richtig, nötig ${w.grenze}</span></div></li>`).join("")}</ul>
+    ${ok ? `<div class="urkunde">
+      <span class="hinweis">Zertifikat</span>
+      <span class="gross">${esc(st.name)}</span>
+      <span>hat den Wissens-Check „${esc(DATEN.titel)}“ am ${d} bestanden: ${W.map(w=>`${esc(w.kurz)} ${w.richtig}/${w.von}`).join(" · ")}.</span>
+      ${st.betrieb ? `<span class="hinweis">${esc(st.betrieb)}</span>` : ""}
+    </div>
+    <div class="knoepfe"><button class="knopf" id="pdf" type="button">Zertifikat als PDF speichern</button><button class="knopf zweit" id="neu" type="button">Neuer Teilnehmer</button></div>
+    <p id="pdfhinweis" class="hinweis" hidden></p>` :
+    `<div class="knoepfe"><button class="knopf" id="nochmal" type="button">Noch einmal versuchen</button></div>`}
+    <h2 style="font-size:19px">Deine Antworten</h2>
+    <ul class="liste">${fragen.map((f,i) => { const a = st.antworten[i]; return `<li><span class="z ${a.ok?"ok":"nein"}">${a.ok?"✓":"✗"}</span><div><div>${esc(f.f)}</div>${a.ok?"":`<div class="r">Deine Antwort: ${"ABCD"[a.k]} · Richtig: ${"ABCD"[f.richtigIdx]}, ${esc(f.a[f.reihe[f.richtigIdx]])}</div>`}</div></li>`; }).join("")}</ul>`;
+  if(ok){ $("#pdf").addEventListener("click", pdf); $("#neu").addEventListener("click", neu); }
+  else $("#nochmal").addEventListener("click", () => { fragen.forEach(f => { const r="ABCD".indexOf(f.r); f.reihe=mischen([0,1,2,3]); f.richtigIdx=f.reihe.indexOf(r); }); st.pos=0; st.antworten=[]; frage(); });
+  window.scrollTo({top:0});
+}
+
+function neu(){ fragen.forEach(f => { const r="ABCD".indexOf(f.r); f.reihe=mischen([0,1,2,3]); f.richtigIdx=f.reihe.indexOf(r); }); st = {name:"",betrieb:"",pos:0,antworten:[],betriebAntw:[],datum:null}; start(); }
+
+function zertifikatPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+  const W = 297, H = 210, d = st.datum.toLocaleDateString("de-DE");
+  doc.setFillColor(209,59,38); doc.rect(0,0,8,H,"F");
+  doc.setDrawColor(226,221,216); doc.setLineWidth(0.4); doc.rect(18,14,W-32,H-28);
+  doc.setFont("helvetica","bold"); doc.setFontSize(26); doc.setTextColor(31,26,23); doc.text("ASUB", 30, 34);
+  const lw = doc.getTextWidth("ASUB"); doc.setFillColor(209,59,38); doc.roundedRect(30+lw+1.2, 29.6, 4.4, 4.4, .6, .6, "F");
+  doc.setDrawColor(255,255,255); doc.setLineWidth(.5); doc.circle(30+lw+3.4, 31.8, 1.1, "S");
+  doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(110,104,99);
+  doc.text("Arbeitsschutz-Unterweisung", W-30, 34, {align:"right"});
+  doc.setFont("helvetica","bold"); doc.setFontSize(34); doc.setTextColor(31,26,23);
+  doc.text("Zertifikat", W/2, 74, {align:"center"});
+  doc.setFont("helvetica","normal"); doc.setFontSize(13); doc.setTextColor(110,104,99);
+  doc.text("Hiermit wird bestätigt, dass", W/2, 90, {align:"center"});
+  doc.setFont("helvetica","bold"); doc.setFontSize(28); doc.setTextColor(31,26,23);
+  doc.text(st.name, W/2, 108, {align:"center"});
+  doc.setDrawColor(209,59,38); doc.setLineWidth(.8); doc.line(W/2-60, 113, W/2+60, 113);
+  doc.setFont("helvetica","normal"); doc.setFontSize(13); doc.setTextColor(31,26,23);
+  const z1 = st.betrieb ? `(${st.betrieb}) ` : "";
+  doc.text(doc.splitTextToSize(`${z1}den Wissens-Check "${DATEN.titel}" am ${d} erfolgreich abgeschlossen hat.`, 200), W/2, 124, {align:"center"});
+  const Wt = wertung(); doc.setFontSize(Wt.length > 12 ? 9 : 10.5);
+  const zeilen = Wt.map(w => `${w.kurz} ${w.titel}: ${w.richtig} von ${w.von} richtig`);
+  const spalten = Math.min(3, Math.ceil(zeilen.length / 6)), proSp = Math.ceil(zeilen.length / spalten);
+  zeilen.forEach((z,i) => { const sp = Math.floor(i/proSp), r = i%proSp; const x = W/2 + (sp - (spalten-1)/2) * (spalten===3 ? 84 : 110);
+    doc.setTextColor(10,122,79); doc.text(z, x, 138 + r*5.6, {align:"center"}); });
+  doc.setDrawColor(31,26,23); doc.setLineWidth(.3);
+  doc.line(40, 176, 120, 176); doc.line(W-120, 176, W-40, 176);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(110,104,99);
+  doc.text("Ort, Datum", 40, 181); doc.text("Unterweisende Person", W-120, 181);
+  doc.text(`Grundlage: ${DATEN.grundlage}`, W/2, 196, {align:"center"});
+  return doc;
+}
+
+async function pdf(){
+  const doc = zertifikatPDF();
+  const name = `Zertifikat ${DATEN.kurz} - ${st.name}.pdf`.replace(/[\\/:*?"<>|]/g,"");
+  const h = $("#pdfhinweis");
+  let dl = null;
+  try { dl = window.claude ? await window.claude.use("downloads") : null; } catch(e) { dl = null; }
+  if(dl){
+    try { await dl.save({filename:name, data:doc.output("blob")}); h.hidden=false; h.textContent="Das Zertifikat wurde gespeichert."; }
+    catch(e){ h.hidden=false; h.textContent = e && e.code==="declined" ? "Speichern abgebrochen. Du kannst es jederzeit noch einmal versuchen." : "Speichern ist hier gerade nicht möglich."; }
+  } else {
+    doc.save(name); h.hidden=false; h.textContent="Das Zertifikat wurde als PDF heruntergeladen.";
+  }
+}
+
+start();
+</script>
