@@ -151,7 +151,7 @@ async function video(i){
     <div class="knoepfe"><button class="knopf" id="vweiter" type="button" disabled>${i < VIDEOS.length-1 ? "Weiter zum nächsten Video" : "Weiter zu den Fragen"}</button></div>`;
   await ladeYT();
   let letzte = null, uhr = null; const gesehenSek = new Set();
-  const p = new YT.Player("yt", {videoId: v.id, playerVars:{rel:0, modestbranding:1, playsinline:1},
+  const p = new YT.Player("yt", {host:"https://www.youtube-nocookie.com", videoId: v.id, playerVars:{rel:0, modestbranding:1, playsinline:1},
     events:{ onStateChange: e => {
       clearInterval(uhr);
       if(e.data === YT.PlayerState.PLAYING){ letzte = p.getCurrentTime(); uhr = setInterval(zaehlen, 1000); }
