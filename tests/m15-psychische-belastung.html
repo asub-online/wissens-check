@@ -76,6 +76,7 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 .hinweis{font-size:14px;color:var(--muted)}
 .knoepfe{display:flex;gap:12px;flex-wrap:wrap}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.hinweis a{color:inherit}
 </style>
 
 <div class="wrap">
@@ -126,6 +127,7 @@ function start(){
       </div>
       <p id="fehler" class="hinweis" hidden>Bitte gib deinen Namen ein. Er steht später auf dem Zertifikat.</p>
       ${ARCHIV ? `<p class="hinweis">Datenschutz: Name, Betrieb, Ergebnis und Zertifikat werden als Unterweisungsnachweis an die ASUB GmbH übermittelt und dort gespeichert.</p>` : ""}
+      <p class="hinweis"><a href="https://www.asub-gmbh.de/impressum/impressum.html" target="_blank" rel="noopener">Impressum</a> · <a href="https://www.asub-gmbh.de/impressum/datenschutzerklaerung.html" target="_blank" rel="noopener">Datenschutz</a></p>
       <button class="knopf" type="submit">Test starten</button>
     </form>`;
   $("#anmeldung").addEventListener("submit", e => {
