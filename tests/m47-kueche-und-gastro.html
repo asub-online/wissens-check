@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M47 Küche und Gastro", "kurz": "M47 Küche und Gastro", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M47", "titel": "Küche und Gastro", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Die Fritteuse brennt. Neben dir steht ein Eimer Wasser. Kippst du ihn drüber?", "a": ["Nein, nie Wasser auf brennendes Fett", "Ja, Wasser löscht immer", "Ja, aber nur ein wenig davon", "Ja, wenn du Abstand hältst"], "r": "A", "w": "Wasser auf brennendem Fett führt zu einer Stichflamme. Deckel drauf oder Fettbrandlöscher (Klasse F), Gerät aus. Wasser verdampft schlagartig und reißt brennendes Fett als Stichflamme mit.", "q": "DGUV Regel 110-002 · ASR A2.2"}, {"f": "Dir fällt ein Messer herunter. Was tust du?", "a": ["Schnell mit der Hand auffangen", "Fallen lassen und zurücktreten", "Mit dem Fuß abfangen", "Mit dem Knie stoppen"], "r": "B", "w": "Wer nach einem fallenden Messer greift, greift oft in die Klinge.", "q": "DGUV Regel 110-002"}, {"f": "Der Boden vor der Spüle ist nass, gerade ist viel los. Was tust du?", "a": ["Sofort wegwischen oder absperren", "Nichts, später wischen", "Drübergehen, du kennst ja die Stelle", "Ein Handtuch drauflegen"], "r": "A", "w": "Nasse und fettige Böden sind in der Küche die Unfallursache Nummer eins.", "q": "DGUV Regel 110-002"}, {"f": "Du willst die Aufschnittmaschine reinigen. Was zuerst?", "a": ["Laufen lassen, dann geht es schneller", "Ausschalten und Stecker ziehen", "Mit dem Lappen ans laufende Messer", "Nur das Messer abnehmen, Maschine an"], "r": "B", "w": "Die Schutzeinrichtungen bleiben dran. Gereinigt wird nur ausgeschaltet.", "q": "BetrSichV · DGUV Regel 110-002"}, {"f": "Welche Schuhe trägst du in der Küche?", "a": ["Geschlossen, mit rutschhemmender Sohle", "Sneaker mit glatter Sohle", "Clogs ohne Fersenriemen", "Badelatschen, die sind luftig"], "r": "A", "w": "Mit festem Halt an der Ferse. Die Sohle entscheidet, ob du auf Fett und Wasser rutschst.", "q": "DGUV Regel 110-002"}]}], "betrieb": ["Wo hängt in eurer Küche der Fettbrandlöscher oder die Löschdecke?", "Wo hängt der Hautschutzplan?", "Wer ist in eurer Schicht Ersthelfer?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

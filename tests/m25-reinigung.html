@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M25 Reinigung", "kurz": "M25 Reinigung", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M25", "titel": "Reinigung", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Der Kalk im WC geht nicht weg. Du denkst: Mit einem Schuss Chlorreiniger zusätzlich wirkt es doppelt. Machst du das?", "a": ["Ja, doppelt hält besser", "Ja, wenn das Fenster offen ist", "Ja, wenn du kurz dazwischen wartest", "Nein, Reiniger nie mischen"], "r": "D", "w": "Chlorreiniger und saure Reiniger bilden zusammen giftiges Chlorgas. Schon wenige Atemzüge Chlorgas können die Lunge schwer schädigen.", "q": "TRGS 401 · Herstellerhinweise"}, {"f": "Der Boden ist sehr schmutzig. Nimmst du mehr Reiniger als angegeben?", "a": ["Nein, genau nach Angabe dosieren", "Ja, mehr hilft mehr", "Ja, ruhig doppelt so viel nehmen", "Ja, pur wirkt am besten"], "r": "A", "w": "Zu viel Reiniger greift Haut und Oberflächen an. Überdosierung reinigt nicht besser, schadet aber Haut und Material.", "q": "GefStoffV · Betriebsanweisung"}, {"f": "In welcher Reihenfolge verdünnst du ein Konzentrat?", "a": ["Erst Konzentrat, dann Wasser drauf", "Erst Wasser, dann das Konzentrat dazu", "Egal", "Konzentrat mit heißem Wasser übergießen"], "r": "B", "w": "So spritzt weniger Konzentrat und es entstehen weniger Dämpfe.", "q": "Betriebsanweisung"}, {"f": "Dir spritzt Reiniger ins Auge. Was tust du?", "a": ["Kurz mit dem Ärmel auswischen", "Mindestens 10 Minuten mit Wasser spülen", "Abwarten, ob es weiter brennt", "Augentropfen nehmen und abwarten"], "r": "B", "w": "Danach zum Arzt, Etikett mitnehmen. Nur langes Spülen verdünnt das Mittel ausreichend.", "q": "Betriebsanweisung · DGUV"}, {"f": "Du willst einen Rest Reiniger für unterwegs abfüllen. Worin?", "a": ["In einen gekennzeichneten Behälter", "In eine leere Wasserflasche, gut beschriftet", "In einen Kaffeebecher mit Deckel", "In eine alte Thermoskanne"], "r": "A", "w": "Nie in Getränkeflaschen, auch nicht beschriftet. Getränkeflaschen führen immer wieder zu Verwechslungen.", "q": "GefStoffV § 8"}]}], "betrieb": ["Wo hängen die Betriebsanweisungen für eure Reinigungsmittel?", "Welche Handschuhe sind für eure Mittel vorgesehen?", "Gibt es bei euch ein Dosiersystem, und wie funktioniert es?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

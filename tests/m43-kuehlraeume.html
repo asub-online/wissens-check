@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M43 Kühlräume", "kurz": "M43 Kühlräume", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M43", "titel": "Kühlräume", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Die Innenentriegelung der Tiefkühlraumtür klemmt seit gestern. Du musst nur schnell zwei Kartons holen. Gehst du rein und lässt die Tür offen?", "a": ["Ja, mit offener Tür passiert nichts", "Nein. Erst melden und reparieren lassen", "Ja, mit einem Keil in der Tür", "Ja, wenn ein Kollege in der Nähe ist"], "r": "B", "w": "Eine Tür kann zufallen, dann bist du eingesperrt. Die Tür muss sich von innen immer ohne Schlüssel öffnen lassen. In der Kälte zählt jede Minute.", "q": "DGUV Information 208-034"}, {"f": "Wann ziehst du die Kälteschutzkleidung an?", "a": ["Vor dem Reingehen", "Wenn du drinnen anfängst zu frieren", "Nur bei längeren Arbeiten", "Gar nicht, du bist ja nur kurz drin"], "r": "A", "w": "Ausgekühlt wird man schneller, als man merkt.", "q": "ASR A3.5"}, {"f": "Im Kühlraum riecht es plötzlich stechend, der Gaswarner piept. Was tust du?", "a": ["Weiterarbeiten, das ist die Lüftung", "Tür zumachen, damit nichts entweicht, und drinbleiben", "Nachsehen, wo es herkommt", "Sofort raus und melden"], "r": "D", "w": "Kältemittel wie Ammoniak oder CO₂ können schnell gefährlich werden.", "q": "Gefährdungsbeurteilung · DGUV Information 208-034"}, {"f": "Es ist noch viel Ware einzuräumen, aber deine Aufwärmpause ist dran. Was tust du?", "a": ["Durcharbeiten, dann bist du schneller fertig", "Pause verkürzen", "Die Pause im Kühlraum machen", "Pause machen, wie festgelegt, mit warmem Getränk"], "r": "D", "w": "Kalte Finger greifen schlecht, kalte Muskeln verletzen sich leichter.", "q": "ASR A3.5 · DIN 33403-5"}, {"f": "Deine Kleidung ist beim Arbeiten im Kühlraum nass geworden. Was tust du?", "a": ["Sofort wechseln", "Anbehalten, trocknet von allein", "Nur die Jacke ausziehen", "Schneller arbeiten, um warm zu bleiben"], "r": "A", "w": "Nasse Kleidung leitet die Kälte direkt auf die Haut.", "q": "ASR A3.5"}]}], "betrieb": ["Wo ist der Notschalter in eurem Kühl- oder Tiefkühlraum?", "Wie lange darfst du am Stück drin sein, und wo machst du die Aufwärmpause?", "Wem sagst du Bescheid, bevor du in den Tiefkühlraum gehst?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

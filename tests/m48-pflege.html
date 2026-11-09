@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M48 Pflege", "kurz": "M48 Pflege", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M48", "titel": "Pflege", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Eine schwere Bewohnerin muss vom Bett in den Rollstuhl. Der Lifter steht am Flurende, die Kollegin ist beschäftigt. Hebst du sie allein?", "a": ["Ja, das geht schneller", "Ja, wenn die Bewohnerin mithilft", "Ja, mit etwas Schwung", "Nein, Lifter holen oder warten"], "r": "D", "w": "Allein heben schadet deinem Rücken und gefährdet die Bewohnerin, wenn du sie fallen lässt.", "q": "LasthandhabV · DGUV Information 207-022"}, {"f": "Wann setzt du Hilfsmittel wie Gleitmatte, Rutschbrett oder Lifter ein?", "a": ["Nur im Notfall", "Nur bei sehr schweren Patienten", "Nur wenn der Chef zuschaut", "Jeden Tag, wo sie passen"], "r": "D", "w": "Hilfsmittel sind für den Alltag gedacht, nicht für Ausnahmen.", "q": "DGUV Information 207-022"}, {"f": "Bevor du einen Patienten bewegst: Was klärst du?", "a": ["Was er selbst kann und was du vorhast", "Nichts, einfach beherzt anpacken", "Nur wie groß und schwer er ist", "Nur ob er gerade Schmerzen hat"], "r": "A", "w": "Dazu Bett auf Arbeitshöhe, Bremsen fest, Weg frei. Wer mithilft, wird gestärkt und entlastet dich.", "q": "DGUV Information 207-022"}, {"f": "Wie bewegst du einen Menschen rückengerecht?", "a": ["Aus dem Rücken hochheben", "Mit gestreckten Armen", "Nah ran, in die Knie, Rücken gerade", "Mit einer Drehung aus der Hüfte"], "r": "C", "w": "Das Gewicht über die Beine verlagern, gleiten statt tragen. Ruckartige Bewegungen und Verdrehen belasten die Bandscheiben stark.", "q": "BGW-Leitlinien · DGUV Information 207-022"}, {"f": "Wohin mit einer benutzten Kanüle?", "a": ["Sofort in den Abwurfbehälter", "Kappe drauf und in den Müll", "Erst mal in die Kitteltasche", "Auf das Tablett legen"], "r": "A", "w": "Keine Kappe wieder aufsetzen. Beim Zurückstecken passieren die meisten Nadelstichverletzungen.", "q": "TRBA 250"}]}], "betrieb": ["Welche Hilfsmittel gibt es auf deiner Station oder in deinem Wohnbereich, und wo stehen sie?", "Wer ist bei euch Ansprechpartner für Kinästhetik oder Rückenschule?", "Wo stehen die Abwurfbehälter für Kanülen?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

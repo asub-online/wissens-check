@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M44 Kettensäge und Freischneider", "kurz": "M44 Kettensäge und Freischneider", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M44", "titel": "Kettensäge und Freischneider", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Du sollst schnell einen Ast über Kopfhöhe absägen, von der Leiter aus, die Säge in einer Hand. Machst du das?", "a": ["Ja, ist ja nur ein dünner Ast", "Ja, wenn du dich gut festhältst", "Ja, wenn du eine Schnittschutzhose trägst", "Nein, so ist das viel zu gefährlich"], "r": "D", "w": "Nie über Schulterhöhe sägen, nie einhändig und nicht von der Leiter. Anderes Verfahren wählen. Ein Rückschlag über Kopf trifft Gesicht und Hals, und auf der Leiter hast du keinen Halt.", "q": "DGUV Regel 114-018"}, {"f": "Was löst einen gefährlichen Rückschlag der Motorsäge aus?", "a": ["Holz an der oberen Spitze der Schiene", "Eine frisch geschärfte Kette", "Zu viel Kettenöl im Tank", "Wenn man zu langsam sägt"], "r": "A", "w": "Die Säge schlägt dann nach oben zum Kopf hin. Dann schnellt die Säge nach oben zu dir. Deshalb nie mit der Schienenspitze schneiden.", "q": "DGUV Information 214-059"}, {"f": "Deine Schnittschutzhose hat einen kleinen Riss. Was tust du?", "a": ["Flicken, dann geht es noch", "Weitertragen, der Riss ist klein", "Austauschen", "Klebeband drüber"], "r": "C", "w": "Die Fasern stoppen die Kette nur, wenn die Hose unbeschädigt ist.", "q": "DIN EN ISO 11393"}, {"f": "Darfst du ohne Motorsägenlehrgang mit der Kettensäge arbeiten?", "a": ["Nein, nur mit Ausbildung", "Ja, wenn du es zu Hause schon gemacht hast", "Ja, für kleine Äste", "Ja, unter Aufsicht eines Kollegen ohne Lehrgang"], "r": "A", "w": "Die Motorsäge ist eines der gefährlichsten Handwerkzeuge.", "q": "DGUV Information 214-059"}, {"f": "Du arbeitest mit dem Freischneider. Wie weit müssen andere weg sein?", "a": ["2 Meter", "5 Meter", "Egal, wenn sie zuschauen", "Mindestens 15 Meter"], "r": "D", "w": "Steine und Holzstücke fliegen weit.", "q": "Herstellerangaben · DGUV"}]}], "betrieb": ["Wer hat bei euch einen Motorsägenlehrgang?", "Wo liegt die Schnittschutzausrüstung?", "Wo wird die Säge gewartet und die Kette geschärft?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

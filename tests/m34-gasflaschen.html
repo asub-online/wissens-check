@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M34 Gasflaschen", "kurz": "M34 Gasflaschen", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M34", "titel": "Gasflaschen", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Du bringst eine Propanflasche zur Baustelle. Der Kofferraum ist voll, also legst du sie kurz auf die Rückbank. Okay?", "a": ["Ja, für zehn Minuten geht das", "Ja, wenn das Fenster offen ist", "Ja, wenn die Flasche fast leer ist", "Nein, nur stehend gesichert, nie lose"], "r": "D", "w": "Gasflaschen werden stehend gesichert, gut belüftet und nicht lose im Fahrgastraum transportiert. Tritt Gas aus, sammelt es sich im Auto. Ein Funke reicht.", "q": "TRGS 745 · StVO § 22"}, {"f": "In der Werkstatt zischt es an einer Gasflasche, es riecht nach Gas. Was tust du?", "a": ["Licht anmachen, um besser zu sehen", "Mit dem Feuerzeug die Stelle suchen", "Weiterarbeiten, das zischt öfter mal", "Ventil zu, wenn gefahrlos, keine Funken"], "r": "D", "w": "Keine Schalter, kein Handy, lüften, warnen, raus und Bescheid geben. Jeder Funke kann das Gas zünden, auch ein Lichtschalter.", "q": "TRGS 745"}, {"f": "Am Sauerstoffventil sind Fettspuren von deinen Handschuhen. Was ist das Problem?", "a": ["Keins, das Fett schmiert sogar", "Nur dass das Ventil schmutzig wird", "Es kann sich von selbst entzünden", "Gefährlich nur bei leeren Flaschen"], "r": "C", "w": "Sauerstoff unter Druck kann Öl und Fett von selbst entzünden. Darum: Sauerstoffarmaturen immer öl- und fettfrei.", "q": "TRGS 745"}, {"f": "Wie transportierst du eine Gasflasche im Betrieb?", "a": ["Rollen, das geht am leichtesten", "Am Ventil tragen, da ist ein Griff", "Werfen, wenn es eilt", "Mit Ventilkappe im Flaschenwagen"], "r": "D", "w": "Bricht das Ventil ab, wird die Flasche zum Geschoss.", "q": "TRBS 3145 · TRGS 745"}, {"f": "Wo dürfen Gasflaschen nicht gelagert werden?", "a": ["Im belüfteten Flaschenlager", "Im Keller, Treppenhaus oder Flur", "Draußen im Gitterschrank", "Gesichert an der Wand im Freien"], "r": "B", "w": "Dort sammelt sich Gas und es versperrt Fluchtwege.", "q": "TRGS 510"}]}], "betrieb": ["Wo ist euer Gasflaschenlager?", "Wo stehen die Flaschenwagen?", "Welche Gase nutzt ihr in deinem Bereich?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

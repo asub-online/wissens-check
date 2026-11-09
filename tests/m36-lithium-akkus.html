@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M36 Lithium-Akkus", "kurz": "M36 Lithium-Akkus", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M36", "titel": "Lithium-Akkus", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Der Akku deines Schraubers ist leicht aufgebläht. Morgen brauchst du ihn dringend. Lädst du ihn über Nacht?", "a": ["Nein, nicht mehr laden oder benutzen", "Ja, einmal geht das noch", "Ja, wenn du ihn vorher abkühlst", "Ja, mit einem anderen Ladegerät"], "r": "A", "w": "Auf nicht brennbaren Untergrund legen und melden. Ein aufgeblähter Akku kann thermisch durchgehen und in Brand geraten.", "q": "VdS 3103 · BetrSichV"}, {"f": "Wo lädst du Akkus?", "a": ["Auf dem Kartonstapel im Lager", "Im Fluchtweg, da ist die Steckdose", "Am festen Ladeplatz, nicht brennbar", "Im Auto, da ist es schön warm"], "r": "C", "w": "Ohne Brennbares daneben. Brennt ein Akku, soll das Feuer nichts finden, worauf es übergreifen kann.", "q": "VdS 3103 · ASR A2.3"}, {"f": "Ein Akku ist heruntergefallen und hat eine Delle. Funktioniert aber noch. Was tust du?", "a": ["Aussondern und melden", "Weiter benutzen", "Delle ausbeulen", "Nur noch halb laden"], "r": "A", "w": "Mechanische Schäden im Inneren sieht man nicht.", "q": "VdS 3103"}, {"f": "Ein Akku brennt mit Stichflammen. Was tust du?", "a": ["Abstand halten, Alarm, Feuerwehr", "Ihn mit der Hand herausziehen", "Mit einer Decke abdecken und festhalten", "Ihn schnell in den Müll werfen"], "r": "A", "w": "Nicht im Rauch stehen bleiben. Die Gase sind giftig. Kleine Akkus kann man mit viel Wasser kühlen, wenn es gefahrlos geht.", "q": "ASR A2.2"}, {"f": "Wohin mit einem alten Akku?", "a": ["In den Restmüll", "In den Gelben Sack", "Pole abkleben, in die Sammelbox", "In die Schublade für später"], "r": "C", "w": "Im Müll können Akkus kurzschließen und Brände auslösen.", "q": "BattG"}]}], "betrieb": ["Wo ist euer Ladeplatz für Akkus?", "Wo steht der Sammelbehälter für alte Akkus?", "Wem meldest du einen beschädigten Akku?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

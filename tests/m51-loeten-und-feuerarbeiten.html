@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M51 Löten und Feuerarbeiten", "kurz": "M51 Löten und Feuerarbeiten", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M51", "titel": "Löten und Feuerarbeiten", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Feierabend. Du hast gerade ein Rohr neben einer Holzverkleidung gelötet. Alles sieht kalt aus. Gehst du direkt nach Hause?", "a": ["Ja, es ist ja nichts zu sehen", "Ja, wenn du Wasser drüber gießt", "Ja, der Kunde passt schon auf", "Nein, erst die Brandwache"], "r": "D", "w": "So lange, wie es im Erlaubnisschein steht. Glutnester sieht man oft nicht. Glutnester schwelen oft stundenlang unbemerkt in Hohlräumen.", "q": "DGUV Information 205-002"}, {"f": "Du lötest beim Kunden im Bad. Brauchst du einen Erlaubnisschein?", "a": ["Nein, Löten ist harmlos", "Nur bei großen Arbeiten", "Ja, außerhalb der Werkstatt immer", "Nur wenn der Kunde es will"], "r": "C", "w": "Außerhalb der festen Werkstatt braucht es für Feuerarbeiten einen schriftlichen Erlaubnisschein. Darin steht, was vorbereitet ist, wer aufpasst und wie lange nachkontrolliert wird.", "q": "DGUV Information 205-002"}, {"f": "Wo steht der Feuerlöscher, wenn du lötest?", "a": ["Im Auto", "Im Betrieb", "Griffbereit neben dir", "Beim Kunden in der Küche"], "r": "C", "w": "Im Ernstfall zählen Sekunden.", "q": "DGUV Information 205-002 · ASR A2.2"}, {"f": "Hinter der Wand, an der du lötest, liegt Dämmung. Was tust du?", "a": ["Nichts, die Wand schützt", "Einfach schneller löten", "Prüfen und Brennbares schützen", "Flamme kleiner stellen reicht"], "r": "C", "w": "Fugen und Löcher abdichten. Hitze und Funken wandern durch Fugen und Durchbrüche.", "q": "DGUV Information 205-002"}, {"f": "Warum lüftest oder saugst du beim Löten ab?", "a": ["Nur wegen des Geruchs", "Damit es kühler wird", "Das ist nicht nötig", "Lötrauch reizt die Atemwege"], "r": "D", "w": "Die Dämpfe sind Gefahrstoffe.", "q": "TRGS 528"}]}], "betrieb": ["Wer stellt bei euch den Erlaubnisschein für Feuerarbeiten aus?", "Welcher Feuerlöscher ist bei Feuerarbeiten dabei?", "Wie lange kontrolliert ihr nach Feuerarbeiten nach?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

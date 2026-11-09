@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M46 Asbest und Abbruch", "kurz": "M46 Asbest und Abbruch", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M46", "titel": "Asbest und Abbruch", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Beim Umbau in einem alten Haus findest du hinter der Verkleidung graue Platten. Du sollst nur schnell ein Loch für ein Kabel bohren. Bohrst du?", "a": ["Ja, ein Loch ist ungefährlich", "Ja, mit einer Staubmaske", "Ja, wenn du nass bohrst", "Nein, sofort stoppen und melden"], "r": "D", "w": "Nicht bohren, Bereich verlassen und die Führungskraft informieren. Solange nicht geklärt ist, ob es Asbest ist, wird nicht gearbeitet. Eine sichere Menge gibt es nicht.", "q": "GefStoffV § 5a · TRGS 519"}, {"f": "Warum ist Asbest so gefährlich?", "a": ["Weil er leicht brennt", "Weil die Platten schwer sind", "Feine Fasern bleiben in der Lunge", "Nur wegen Reizungen der Haut"], "r": "C", "w": "Die Fasern bleiben in der Lunge und können Jahrzehnte später Krebs auslösen. Die Krankheit zeigt sich oft erst 30 Jahre später.", "q": "TRGS 519"}, {"f": "Wer klärt vor Arbeiten an einem alten Gebäude, ob Asbest drin ist?", "a": ["Auftraggeber und Betrieb, vorher", "Niemand, man sieht es ja", "Du selbst, während der Arbeit", "Erst der Abbruchunternehmer"], "r": "A", "w": "Bei Gebäuden mit Baujahr vor Ende Oktober 1993 muss das vorher erkundet werden.", "q": "GefStoffV § 5a"}, {"f": "Wer darf Asbest entfernen?", "a": ["Jeder mit einer Schutzmaske", "Jeder geübte Handwerker", "Der Hausbesitzer selbst", "Nur zugelassene Fachfirmen"], "r": "D", "w": "Sie brauchen Sachkunde und spezielle Schutzausrüstung. Asbestarbeiten sind streng geregelt und anzeigepflichtig.", "q": "GefStoffV · TRGS 519"}, {"f": "Bei Abbrucharbeiten liegt viel Staub. Wie entfernst du ihn?", "a": ["Mit dem Besen zusammenfegen", "Mit Druckluft wegblasen", "Nass binden oder absaugen", "Einfach liegen lassen"], "r": "C", "w": "Aufgewirbelter Staub gelangt in die Atemwege.", "q": "TRGS 519 · TRGS 524"}]}], "betrieb": ["Wen informierst du bei Asbestverdacht?", "Mit welcher Fachfirma arbeitet ihr bei Asbest zusammen?", "Welcher Atemschutz steht bei euch für staubige Arbeiten bereit?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");

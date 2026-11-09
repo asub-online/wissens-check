@@ -89,7 +89,16 @@ input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px;border-
 <script>
 const DATEN = {"titel": "M39 Schicht- und Nachtarbeit", "kurz": "M39 Schicht- und Nachtarbeit", "grundlage": "ArbSchG § 12 · DGUV Vorschrift 1 § 4", "bausteine": [{"kurz": "M39", "titel": "Schicht- und Nachtarbeit", "bestehen": 4, "teile": [{"titel": "", "fragen": [{"f": "Nach der Nachtschicht fallen dir auf dem Parkplatz fast die Augen zu. Fährst du trotzdem die halbe Stunde heim?", "a": ["Nein, erst ausruhen oder abholen lassen", "Ja, die Strecke kennst du ja", "Ja, mit offenem Fenster und lauter Musik", "Ja, mit einem Energydrink"], "r": "A", "w": "Kurz schlafen, abholen lassen oder Bahn nehmen. Müdigkeit am Steuer ist so gefährlich wie Alkohol. Der Heimweg ist ein häufiger Unfallort nach Nachtschichten.", "q": "BAuA · DGUV"}, {"f": "Wann ist deine Konzentration in der Nachtschicht am niedrigsten?", "a": ["Gegen 22 Uhr", "Kurz vor Schichtende um 6", "Sie ist die ganze Nacht gleich", "Etwa zwischen 2 und 5 Uhr"], "r": "D", "w": "Gerade in diesem Zeitfenster bei gefährlichen Arbeiten doppelt prüfen.", "q": "BAuA"}, {"f": "Wie viel Ruhezeit steht dir nach einer Schicht mindestens zu?", "a": ["8 Stunden", "6 Stunden", "11 Stunden", "Keine feste Zeit"], "r": "C", "w": "Das gilt nach jeder Schicht, egal ob Früh, Spät oder Nacht.", "q": "ArbZG § 5"}, {"f": "Was isst du nachts am besten?", "a": ["Schwere, fettige Mahlzeiten", "Nur Süßes für schnelle Energie", "Gar nichts bis zum Morgen", "Leichte, warme Mahlzeiten, viel Wasser"], "r": "D", "w": "Nachts arbeitet der Magen langsamer.", "q": "BAuA"}, {"f": "Welches Recht hast du als Nachtarbeiter?", "a": ["Keine besonderen Rechte", "Nur ein paar Tage mehr Urlaub", "Nur einen Zuschlag auf den Lohn", "Eine arbeitsmedizinische Untersuchung"], "r": "D", "w": "Vor Beginn und dann regelmäßig. Alle drei Jahre, ab 50 jährlich. Bei gesundheitlichen Problemen kann ein Tagesarbeitsplatz in Frage kommen.", "q": "ArbZG § 6 Abs. 3 und 4"}]}], "betrieb": ["Wie rotiert euer Schichtplan (z. B. Früh, Spät, Nacht)?", "Wo ist bei euch der Pausenraum für die Nachtschicht?", "Hast du die Untersuchung für Nachtarbeiter schon genutzt?"], "videos": []}]};
 const ARCHIV = "https://script.google.com/macros/s/AKfycbytGKnkW_rMbAUVdCBnSD2LLGztE9hy4qdQkvH0DnHjaw_wclbS1STvWUhEALjx4Cgi/exec";
-const VIDEOS = DATEN.bausteine.flatMap(b => (b.videos||[]).map(v => ({...v, baustein:b.kurz})));
+// Stil per Link: ?stil=kreide (Standard) | comic | p2 – fehlt der Stil für einen Baustein, nimmt der Test Kreide
+const STIL_NAMEN = {kreide:"Kreide", comic:"Comic", p2:"Präsentation 2.0"};
+const artVon = v => /^comic/i.test(v.stil||"") ? "comic" : /^pr(ä|ae)sentation/i.test(v.stil||"") ? "p2" : "kreide";
+const STIL = (() => { try { const s = new URLSearchParams(location.search).get("stil"); return STIL_NAMEN[s] ? s : "kreide"; } catch(e) { return "kreide"; } })();
+const VIDEOS = DATEN.bausteine.flatMap(b => {
+  const alle = (b.videos||[]).map(v => ({...v, art:artVon(v), baustein:b.kurz}));
+  const passend = alle.filter(v => v.art === STIL);
+  return (passend.length ? passend : alle.filter(v => v.art === "kreide"))
+    .map(v => ({...v, titel: v.titel + " (" + STIL_NAMEN[v.art] + ")"}));
+});
 const SCHWELLE = 0.9; // so viel vom Video muss wirklich abgespielt sein
 const $ = s => document.querySelector(s);
 const buehne = $("#buehne");
